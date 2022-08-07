@@ -1,36 +1,17 @@
 const choices = ['rock', 'paper', 'scissors'];
 var score = [0, 0, 0];
+var round = 1;
 
 function getComputerChoise() {
   return choices[Math.floor(Math.random() * 3)];
 }
 
-function getPlayerSelection() {
-  let playerChoice = prompt(
-    'Choose your weapon: (rock, paper, scissors)'
-  ).toLowerCase();
-  switch (playerChoice) {
-    case 'rock':
-      return 'rock';
-      break;
-    case 'paper':
-      return 'paper';
-      break;
-    case 'scissors':
-      return 'scissors';
-      break;
-    default:
-      alert('Only "rock", "paper" or "scissors" are valid!');
-      return getPlayerSelection();
-  }
-}
-
 function playRound(playerSelection, computerSelection) {
-  // const playerSelection = getPlayerSelection();
-  // const computerSelection = getComputerChoise();
+  round++;
+
   if (playerSelection === computerSelection) {
     score[2]++;
-    console.log(`${playerSelection} ties with ${computerSelection}!`);
+    roundResult.textContent = `${playerSelection} ties with ${computerSelection}!`;
     return;
   } else if (
     (playerSelection === 'rock' && computerSelection === 'scissors') ||
@@ -38,35 +19,73 @@ function playRound(playerSelection, computerSelection) {
     (playerSelection === 'paper' && computerSelection === 'rock')
   ) {
     score[0]++;
-    console.log(`You win! ${playerSelection} wins ${computerSelection}!`);
+    roundResult.textContent = `You win! ${playerSelection} wins ${computerSelection}!`;
     return;
   } else {
     score[1]++;
-    console.log(`You lost! ${computerSelection} wins ${playerSelection}!`);
+    roundResult.textContent = `You lost! ${computerSelection} wins ${playerSelection}!`;
     return;
   }
 }
 
-function game() {
-  for (let i = 0; i < 5; i++) {
-    playRound(getPlayerSelection(), getComputerChoise());
+function gameEnded() {
+  if (score[0] === 5) {
+    roundResult.textContent = 'You Win!!';
+    btnWeapon.forEach(btn => (btn.disabled = true));
+    return true;
+  } else if (score[1] === 5) {
+    roundResult.textContent = 'You lost!';
+    btnWeapon.forEach(btn => (btn.disabled = true));
+    return true;
+  } else {
+    return false;
   }
+}
 
-  let message =
-    score[0] === score[1]
-      ? 'Tie!'
-      : score[0] > score[1]
-      ? 'You win!'
-      : 'You lost!';
+function game(playerChoice) {
+  computerChoice = getComputerChoise();
+  playRound(playerChoice, computerChoice);
+  updateRound(playerChoice, computerChoice);
+  updateScore();
+}
 
-  message += ` Final score: \nPlayer: ${score[0]} \nComputer: ${score[1]} \nDraws: ${score[2]}`;
+function updateScore() {
+  pScore.textContent = `You: ${score[0]}  |  A.I.: ${score[1]}.`;
+  if (gameEnded()) return;
+}
 
-  console.log(message);
-  resetGame();
+function updateRound(player, computer) {
+  const newLine = document.createElement('tr');
+  const newRound = document.createElement('td');
+  const playerChoice = document.createElement('td');
+  const computerChoice = document.createElement('td');
+
+  newRound.textContent = round;
+  newLine.appendChild(newRound);
+  playerChoice.textContent = player;
+  newLine.appendChild(playerChoice);
+  computerChoice.textContent = computer;
+  newLine.appendChild(computerChoice);
+
+  resultTable.appendChild(newLine);
 }
 
 function resetGame() {
   score = [0, 0, 0];
+  round = 0;
+  while (resultTable.rows.length) {
+    resultTable.deleteRow(0);
+  }
+  updateScore();
+  roundResult.textContent = '';
+  btnWeapon.forEach(btn => (btn.disabled = false));
 }
 
-game();
+const roundResult = document.querySelector('.round-result');
+const btnWeapon = document.querySelectorAll('.weapon');
+const btnReset = document.querySelector('.btn-reset');
+const pScore = document.querySelector('.score');
+const resultTable = document.querySelector('#resultTable');
+
+btnReset.addEventListener('click', resetGame);
+btnWeapon.forEach(btn => btn.addEventListener('click', () => game(btn.id)));
